@@ -1,16 +1,18 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import base64
 import Medicion
 
 app = FastAPI()
 
-# 👉 "Base de datos" temporal en memoria
 registros = []
 
+# Zona horaria Colombia
+zona_colombia = ZoneInfo("America/Bogota")
 
-# Modelo para recibir la imagen en Base64
+
 class ImageRequest(BaseModel):
     image: str
 
@@ -21,21 +23,23 @@ class ImageRequest(BaseModel):
 @app.post("/clasificar")
 async def clasificar(data: ImageRequest):
 
-    # Decodificar imagen Base64 a bytes
     image_bytes = base64.b64decode(data.image)
-
-    # Procesar imagen
     size, area = Medicion.detectar_tamano(image_bytes)
 
-    # Crear registro
+    # Hora local Colombia
+    ahora = datetime.now(zona_colombia)
+
     registro = {
-        "id": f"LIM-{int(datetime.utcnow().timestamp())}",
+        "id": f"LIM-{int(ahora.timestamp())}",
         "tamano": size,
         "area": area,
-        "fecha": datetime.utcnow().isoformat()
+
+        # 👉 Formato bonito
+        "fecha": ahora.strftime("%Y-%m-%d"),
+        "hora": ahora.strftime("%H:%M:%S"),
+        "timestamp": ahora.isoformat()
     }
 
-    # Guardar en memoria
     registros.append(registro)
 
     return registro
