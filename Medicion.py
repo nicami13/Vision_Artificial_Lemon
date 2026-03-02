@@ -23,9 +23,9 @@ def detectar_tamano(image_bytes):
     largest = max(contours, key=cv2.contourArea)
     area = cv2.contourArea(largest)
 
-    if area < 3000:
+    if area < 1000:
         size = "PEQUEÑO"
-    elif area < 7000:
+    elif area < 3000:
         size = "MEDIANO"
     else:
         size = "GRANDE"
