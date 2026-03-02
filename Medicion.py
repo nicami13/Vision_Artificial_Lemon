@@ -7,14 +7,24 @@ def detectar_tamano(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
+    if img is None:
+        return "ERROR", 0
+
+    # Convertir a HSV
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-    # Rango color limón (ajústalo luego)
-    lower = np.array([20, 100, 100])
+    # Rango color limón (amarillo)
+    lower = np.array([20, 80, 80])
     upper = np.array([40, 255, 255])
 
     mask = cv2.inRange(hsv, lower, upper)
 
+    # Limpiar ruido (MUY IMPORTANTE)
+    kernel = np.ones((5, 5), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
+    # Encontrar contornos
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     if not contours:
@@ -23,11 +33,12 @@ def detectar_tamano(image_bytes):
     largest = max(contours, key=cv2.contourArea)
     area = cv2.contourArea(largest)
 
-    if area < 1000:
+    # 🔴 CLASIFICACIÓN REALISTA PARA 18cm DE DISTANCIA
+    if area < 5000:
         size = "PEQUEÑO"
-    elif area < 3000:
+    elif area < 15000:
         size = "MEDIANO"
     else:
         size = "GRANDE"
 
-    return size, area
+    return size, int(area)
