@@ -23,3 +23,17 @@ async def clasificar(data: ImageRequest):
         "area": area,
         "fecha": datetime.utcnow().isoformat()
     }
+
+
+@app.post("/clasificar")
+async def clasificar(data: ImageRequest):
+    image_bytes = base64.b64decode(data.image)
+
+    size, area = Medicion.detectar_tamano(image_bytes)
+
+    return {
+        "id": f"LIM-{int(datetime.utcnow().timestamp())}",
+        "tamano": size,
+        "area": area,
+        "fecha": datetime.utcnow().isoformat()
+    }
