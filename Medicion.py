@@ -34,9 +34,9 @@ def detectar_tamano(image_bytes):
     area = cv2.contourArea(largest)
 
     # 🔴 CLASIFICACIÓN REALISTA PARA 18cm DE DISTANCIA
-    if area < 5000:
+    if area < 100:
         size = "PEQUEÑO"
-    elif area < 15000:
+    elif area < 300:
         size = "MEDIANO"
     else:
         size = "GRANDE"
