@@ -23,10 +23,16 @@ class ImageRequest(BaseModel):
 @app.post("/clasificar")
 async def clasificar(data: ImageRequest):
 
-    image_bytes = base64.b64decode(data.image)
+    # Si viene con encabezado base64 lo quitamos
+    if "," in data.image:
+        image_base64 = data.image.split(",")[1]
+    else:
+        image_base64 = data.image
+
+    image_bytes = base64.b64decode(image_base64)
+
     size, area = Medicion.detectar_tamano(image_bytes)
 
-    # Hora local Colombia
     ahora = datetime.now(zona_colombia)
 
     registro = {
@@ -34,10 +40,13 @@ async def clasificar(data: ImageRequest):
         "tamano": size,
         "area": area,
 
-        # 👉 Formato bonito
+        # fecha y hora Colombia
         "fecha": ahora.strftime("%Y-%m-%d"),
         "hora": ahora.strftime("%H:%M:%S"),
-        "timestamp": ahora.isoformat()
+        "timestamp": ahora.isoformat(),
+
+        # 👉 guardamos la imagen
+        "imagen_base64": image_base64
     }
 
     registros.append(registro)
