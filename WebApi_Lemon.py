@@ -3,9 +3,11 @@ from pydantic import BaseModel
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import base64
+
+# Importa tu módulo de detección
 import Medicion
 
-app = FastAPI()
+app = FastAPI(title="API Detección de Limones")
 
 registros = []
 
@@ -22,8 +24,7 @@ class ImageRequest(BaseModel):
 # =========================
 @app.post("/clasificar")
 async def clasificar(data: ImageRequest):
-
-    # Si viene con encabezado base64 lo quitamos
+    # Quitar encabezado base64 si viene (data:image/jpeg;base64,...)
     if "," in data.image:
         image_base64 = data.image.split(",")[1]
     else:
@@ -39,14 +40,10 @@ async def clasificar(data: ImageRequest):
         "id": f"LIM-{int(ahora.timestamp())}",
         "tamano": size,
         "area": area,
-
-        # fecha y hora Colombia
         "fecha": ahora.strftime("%Y-%m-%d"),
         "hora": ahora.strftime("%H:%M:%S"),
         "timestamp": ahora.isoformat(),
-
-        # 👉 guardamos la imagen
-        "imagen_base64": image_base64
+        "imagen_base64": image_base64   # solo se guarda aquí
     }
 
     registros.append(registro)
@@ -55,21 +52,43 @@ async def clasificar(data: ImageRequest):
 
 
 # =========================
-# GET - Listar todos
+# GET - Listar TODO (con imagen) - Para navegador / debugging
 # =========================
 @app.get("/listar")
-def listar():
+def listar_todo():
     return registros
 
 
 # =========================
-# GET - Buscar por ID
+# NUEVO ENDPOINT - LIGERO para el ESP32
+# =========================
+@app.get("/listar_lite")
+def listar_lite():
+    """Endpoint optimizado para ESP32 - NO devuelve la imagen base64"""
+    if not registros:
+        # Si no hay registros aún, devolvemos un valor por defecto claro
+        return {
+            "id": None,
+            "tamano": "NO DETECTADO",
+            "area": 0,
+            "fecha": None,
+            "hora": None,
+            "timestamp": None
+        }
+
+    # Devolvemos solo el registro más reciente (el último)
+    ultimo = registros[-1].copy()          # copiamos para no modificar el original
+    ultimo.pop("imagen_base64", None)      # eliminamos la imagen grande
+
+    return ultimo
+
+
+# =========================
+# GET - Buscar por ID (opcional)
 # =========================
 @app.get("/listar/{limon_id}")
 def buscar_por_id(limon_id: str):
-
     for r in registros:
         if r["id"] == limon_id:
             return r
-
     raise HTTPException(status_code=404, detail="Registro no encontrado")
