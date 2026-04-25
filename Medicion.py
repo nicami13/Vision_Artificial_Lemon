@@ -43,7 +43,7 @@ def detectar_tamano(image_bytes):
     
     if area < 400:
         size = "PEQUEÑO"
-    elif area < 2100:
+    elif area < 4000:
         size = "MEDIANO"
     else:
         size = "GRANDE"
