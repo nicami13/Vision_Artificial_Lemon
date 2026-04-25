@@ -32,7 +32,7 @@ async def clasificar(data: ImageRequest):
 
     image_bytes = base64.b64decode(image_base64)
 
-    size, area, width, height = Medicion.detectar_tamano(image_bytes)
+    size, area = Medicion.detectar_tamano(image_bytes)
 
     ahora = datetime.now(zona_colombia)
 
@@ -40,8 +40,6 @@ async def clasificar(data: ImageRequest):
         "id": f"LIM-{int(ahora.timestamp())}",
         "tamano": size,
         "area": area,
-        "ancho": width,
-        "alto": height,
         "fecha": ahora.strftime("%Y-%m-%d"),
         "hora": ahora.strftime("%H:%M:%S"),
         "timestamp": ahora.isoformat(),
@@ -73,8 +71,6 @@ def listar_lite():
             "id": None,
             "tamano": "NO DETECTADO",
             "area": 0,
-            "ancho": 0,
-            "alto": 0,
             "fecha": None,
             "hora": None,
             "timestamp": None

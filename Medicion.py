@@ -39,4 +39,4 @@ def detectar_tamano(image_bytes):
 
     print(f"DEBUG - Área: {area:.0f} px, Ancho: {width:.0f} px, Alto: {height:.0f} px, Clase: {size}, Confianza: {confidence:.2f}")
 
-    return size, area, width, height
+    return size, area
