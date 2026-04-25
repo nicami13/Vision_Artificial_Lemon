@@ -1,9 +1,5 @@
 import cv2
 import numpy as np
-from ultralytics import YOLO
-
-# Cargar el modelo YOLO
-model = YOLO('yolov8n.pt')
 
 def detectar_tamano(image_bytes):
     # Convertir bytes a imagen OpenCV
@@ -11,32 +7,39 @@ def detectar_tamano(image_bytes):
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     if img is None:
-        return "ERROR", 0, 0, 0
+        return "ERROR", 0
 
-    # Usar YOLO para detectar
-    results = model(img)
+    # Convertir a HSV
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-    if not results or len(results[0].boxes) == 0:
-        return "NO DETECTADO", 0, 0, 0
+    # Rango color limón (amarillo)
+    lower = np.array([20, 80, 80])
+    upper = np.array([40, 255, 255])
 
-    # Tomar la detección con mayor confianza
-    boxes = results[0].boxes
-    best_box = boxes[0]  # Asumiendo ordenado por confianza
+    mask = cv2.inRange(hsv, lower, upper)
 
-    # Obtener coordenadas
-    x1, y1, x2, y2 = best_box.xyxy[0].cpu().numpy()
-    width = x2 - x1
-    height = y2 - y1
-    area = width * height
+    # Limpiar ruido
+    kernel = np.ones((5, 5), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
-    # Obtener clase predicha
-    class_id = int(best_box.cls[0].cpu().numpy())
-    confidence = best_box.conf[0].cpu().numpy()
+    # Encontrar contornos
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Asumir clases: 0=PEQUEÑO, 1=MEDIANO, 2=GRANDE
-    sizes = ["PEQUEÑO", "MEDIANO", "GRANDE"]
-    size = sizes[class_id] if class_id < len(sizes) else "DESCONOCIDO"
+    if not contours:
+        return "NO DETECTADO", 0
 
-    print(f"DEBUG - Área: {area:.0f} px, Ancho: {width:.0f} px, Alto: {height:.0f} px, Clase: {size}, Confianza: {confidence:.2f}")
+    largest = max(contours, key=cv2.contourArea)
+    area = cv2.contourArea(largest)
+
+    print(f"DEBUG - Área detectada en píxeles: {area}")
+
+    # Clasificación
+    if area < 400:
+        size = "PEQUEÑO"
+    elif area < 12500:
+        size = "MEDIANO"
+    else:
+        size = "GRANDE"
 
     return size, area
