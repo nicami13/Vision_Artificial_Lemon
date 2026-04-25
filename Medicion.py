@@ -142,7 +142,7 @@ def detectar_tamano(image_bytes, distancia_cm=25):
     Punto de entrada único.
     Uso: tamaño, area_pixeles = detectar_tamano(imagen_bytes, distancia_cm=25)
     """
-    detector = DetectorLimones(distancia_referencia_cm=25)
+    detector = DetectorLimones(distancia_referencia_cm=19)
     return detector.detectar(image_bytes, distancia_cm)
 
 
