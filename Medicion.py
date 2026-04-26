@@ -50,9 +50,9 @@ def detectar_tamano(image_bytes):
     print(f"DEBUG - Área detectada en píxeles: {area}")
 
     # Clasificación ajustada para distancia de 19cm
-    if area < 500:
+    if area < 7000:
         size = "PEQUEÑO"
-    elif area < 15000:
+    elif area < 10000:
         size = "MEDIANO"
     else:
         size = "GRANDE"
