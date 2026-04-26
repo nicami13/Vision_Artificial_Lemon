@@ -40,7 +40,7 @@ def detectar_tamano(image_bytes):
         return "NO DETECTADO", 0
 
     # Filtrar contornos por área mínima para ignorar ruido
-    valid_contours = [c for c in contours if cv2.contourArea(c) > 200]  # Área mínima 200 px
+    valid_contours = [c for c in contours if cv2.contourArea(c) > 500]  # Área mínima 500 px
     if not valid_contours:
         return "NO DETECTADO", 0
 
