@@ -52,7 +52,7 @@ def detectar_tamano(image_bytes):
     # Clasificación ajustada para distancia de 15cm
     if area < 9000:
         size = "PEQUEÑO"
-    elif area < 16040:
+    elif area < 11800:
         size = "MEDIANO"
     else:
         size = "GRANDE"
