@@ -3,15 +3,15 @@ from pydantic import BaseModel
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import base64
+import asyncio
 
-# Importa tu módulo de detección
 import Medicion
 
 app = FastAPI(title="API Detección de Limones")
 
 registros = []
+lock = asyncio.Lock()  # 🔥 PROTECCIÓN
 
-# Zona horaria Colombia
 zona_colombia = ZoneInfo("America/Bogota")
 
 
@@ -24,7 +24,7 @@ class ImageRequest(BaseModel):
 # =========================
 @app.post("/clasificar")
 async def clasificar(data: ImageRequest):
-    # Quitar encabezado base64 si viene (data:image/jpeg;base64,...)
+
     if "," in data.image:
         image_base64 = data.image.split(",")[1]
     else:
@@ -32,63 +32,76 @@ async def clasificar(data: ImageRequest):
 
     image_bytes = base64.b64decode(image_base64)
 
+    print("🧠 Procesando imagen...")
     size, area = Medicion.detectar_tamano(image_bytes)
+    print("✅ Resultado:", size)
 
     ahora = datetime.now(zona_colombia)
 
+    # 🔥 ID MEJORADO (milisegundos)
+    unique_id = f"LIM-{int(ahora.timestamp() * 1000)}"
+
     registro = {
-        "id": f"LIM-{int(ahora.timestamp())}",
+        "id": unique_id,
         "tamano": size,
         "area": area,
         "fecha": ahora.strftime("%Y-%m-%d"),
         "hora": ahora.strftime("%H:%M:%S"),
         "timestamp": ahora.isoformat(),
-        "imagen_base64": image_base64   # solo se guarda aquí
+        "imagen_base64": image_base64
     }
 
-    registros.append(registro)
+    # 🔥 PROTEGER ESCRITURA
+    async with lock:
+        registros.append(registro)
 
     return registro
 
 
 # =========================
-# GET - Listar TODO (con imagen) - Para navegador / debugging
+# GET - Listar TODO
 # =========================
 @app.get("/listar")
-def listar_todo():
-    return registros
+async def listar_todo():
+    async with lock:
+        return registros
 
 
 # =========================
-# NUEVO ENDPOINT - LIGERO para el ESP32
+# GET - LISTAR LITE (CLAVE)
 # =========================
 @app.get("/listar_lite")
-def listar_lite():
-    """Endpoint optimizado para ESP32 - NO devuelve la imagen base64"""
-    if not registros:
-        # Si no hay registros aún, devolvemos un valor por defecto claro
-        return {
-            "id": None,
-            "tamano": "NO DETECTADO",
-            "area": 0,
-            "fecha": None,
-            "hora": None,
-            "timestamp": None
-        }
+async def listar_lite():
 
-    # Devolvemos solo el registro más reciente (el último)
-    ultimo = registros[-1].copy()          # copiamos para no modificar el original
-    ultimo.pop("imagen_base64", None)      # eliminamos la imagen grande
+    async with lock:
 
-    return ultimo
+        if not registros:
+            return {
+                "id": None,
+                "tamano": "NO DETECTADO",
+                "area": 0,
+                "fecha": None,
+                "hora": None,
+                "timestamp": None
+            }
+
+        # 🔥 ORDENAR POR TIMESTAMP REAL
+        ultimo = sorted(registros, key=lambda x: x["timestamp"])[-1].copy()
+
+        ultimo.pop("imagen_base64", None)
+
+        return ultimo
 
 
 # =========================
-# GET - Buscar por ID (opcional)
+# GET - Buscar por ID
 # =========================
 @app.get("/listar/{limon_id}")
-def buscar_por_id(limon_id: str):
-    for r in registros:
-        if r["id"] == limon_id:
-            return r
+async def buscar_por_id(limon_id: str):
+
+    async with lock:
+        for r in registros:
+            if r["id"] == limon_id:
+                return r
+
     raise HTTPException(status_code=404, detail="Registro no encontrado")
