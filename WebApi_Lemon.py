@@ -77,7 +77,7 @@ def listar_lite():
         }
 
     # Devolvemos solo el registro más reciente (el último)
-    ultimo = registros[-1].copy()          # copiamos para no modificar el original
+    ultimo = sorted(registros, key=lambda x: x["timestamp"])[-1]       # copiamos para no modificar el original
     ultimo.pop("imagen_base64", None)      # eliminamos la imagen grande
 
     return ultimo
