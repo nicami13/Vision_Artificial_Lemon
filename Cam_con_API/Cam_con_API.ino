@@ -21,7 +21,7 @@ volatile bool solicitudFotoPendiente = false;
 unsigned long tiempoSolicitud = 0;
 bool fotoTomada = false;
 
-const unsigned long retardoFoto = 3000;
+const unsigned long retardoFoto = 500; // 🔥 BAJADO (antes 3000)
 bool enviando = false;
 
 // ================== SETUP ==================
@@ -82,7 +82,6 @@ void setup() {
 
     Serial.println("📨 /detectar recibido");
 
-    // RESPUESTA INMEDIATA
     server.send(200, "text/plain", "OK");
 
     solicitudFotoPendiente = true;
@@ -92,7 +91,6 @@ void setup() {
     Serial.println("⏳ Foto programada...");
   });
 
-  // DEBUG
   server.on("/", []() {
     server.send(200, "text/plain", "ESP32-CAM OK");
   });
@@ -129,7 +127,16 @@ void tomarFotoYEnviar() {
 
   enviando = true;
 
-  Serial.println("📷 Capturando imagen...");
+  Serial.println("🧹 Limpiando buffer...");
+
+  // 🔥 LIMPIAR FRAMES VIEJOS
+  for (int i = 0; i < 2; i++) {
+    camera_fb_t * fb = esp_camera_fb_get();
+    if (fb) esp_camera_fb_return(fb);
+    delay(50);
+  }
+
+  Serial.println("📷 Capturando imagen REAL...");
 
   camera_fb_t * fb = esp_camera_fb_get();
   if (!fb) {
@@ -161,8 +168,8 @@ void tomarFotoYEnviar() {
 
     Serial.println("✅ Respuesta API OK");
 
-    // ================== ENVIO MULTIPLE ==================
-    for (int i = 0; i < 10; i++) {
+    // ================== ENVIO AL ESP32 ==================
+    for (int i = 0; i < 2; i++) {
 
       HTTPClient http2;
       http2.begin(esp32Receiver);

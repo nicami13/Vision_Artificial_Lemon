@@ -3,6 +3,7 @@
 #include <ESP32Servo.h>
 #include <WebServer.h>
 
+
 // ================== PINES ==================
 #define TRIG_PIN 12
 #define ECHO_PIN 14
@@ -27,8 +28,8 @@ int contadorConfirmacion = 0;
 String timestampEnValidacion = "";
 int intentosValidacion = 0;
 unsigned long ultimoIntentoValidacion = 0;
-const int MAX_INTENTOS = 10;
-const unsigned long INTERVALO_INTENTO = 500;
+const int MAX_INTENTOS = 2;
+const unsigned long INTERVALO_INTENTO = 200;
 // ================== SERVIDOR ==================
 WebServer server(80);
 
