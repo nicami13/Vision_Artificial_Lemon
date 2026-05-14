@@ -49,7 +49,7 @@ IPAddress camaraIP;
 // PARAMETROS
 // =====================================================
 
-const float DISTANCIA_UMBRAL = 19.8;
+const float DISTANCIA_UMBRAL = 11.5;
 
 // =====================================================
 // VARIABLES MODO
@@ -185,21 +185,21 @@ void configurarModo(String modo) {
   modoOperacion = modo;
 
   if(modo == "rapido") {
-    pwmMotor = 255;
+    pwmMotor = 235;
     delayMotor = 4000;
     velocidadServo = 0;
     cooldownFoto = 2000;
     modoPrueba = false;
   }
   else if(modo == "medio") {
-    pwmMotor = 170;
+    pwmMotor = 155;
     delayMotor = 5500;
     velocidadServo = 400;
     cooldownFoto = 3500;
     modoPrueba = false;
   }
   else if(modo == "lento") {
-    pwmMotor = 85;
+    pwmMotor = 115;
     delayMotor = 7000;
     velocidadServo = 700;
     cooldownFoto = 5000;
@@ -316,7 +316,7 @@ void escribirServo2(int angulo) {
 
 void estado_inicial() {
   escribirServo1(50);
-  escribirServo2(0);
+  escribirServo2(75);
 }
 
 // =====================================================
@@ -405,16 +405,15 @@ void procesarClasificacion() {
     case CLASIF_MOVER_SERVOS:
       // Movimientos específicos según tamaño
       if(clasifTamanio == "PEQUENO") {
-        escribirServo2(38);
-        escribirServo1(10);
+        escribirServo2(0);
+        escribirServo1(0);
       }
       else if(clasifTamanio == "MEDIANO") {
-        escribirServo2(170);
-        escribirServo1(95);
+        escribirServo2(145);
+        escribirServo1(105);
       }
       else if(clasifTamanio == "GRANDE") {
-        escribirServo2(90);
-        escribirServo1(50);
+        estado_inicial();
       }
       delayConServidor(300); // pausa corta antes de encender motor
       encenderMotor();
