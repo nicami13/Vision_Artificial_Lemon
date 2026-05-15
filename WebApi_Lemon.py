@@ -131,6 +131,7 @@ def listar_lite():
 # GET - ÚLTIMO (COMPLETO)
 # =========================
 @app.get("/ultimo")
+
 def ultimo_completo():
     if not registros:
         raise HTTPException(status_code=404, detail="Sin registros")
