@@ -36,7 +36,7 @@ def detectar_tamano(image_bytes):
     # Encontrar contornos
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    if not contours:
+    if not contours or area < 740.0:
         return "NO DETECTADO", 0
 
     # Filtrar contornos por área mínima para ignorar ruido
